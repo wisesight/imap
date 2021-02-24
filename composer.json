@@ -11,6 +11,9 @@
         {
             "name": "Community contributors",
             "homepage": "https://github.com/ddeboer/imap/graphs/contributors"
+        },
+        {
+            "name": "Team-H Wisesight"
         }   
     ],
     "require": {
