@@ -1,328 +1,143 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Ddeboer\Imap;
 
-use DateTimeInterface;
-use Ddeboer\Imap\Exception\ImapNumMsgException;
-use Ddeboer\Imap\Exception\ImapStatusException;
-use Ddeboer\Imap\Exception\InvalidSearchCriteriaException;
-use Ddeboer\Imap\Exception\MessageCopyException;
-use Ddeboer\Imap\Exception\MessageMoveException;
-use Ddeboer\Imap\Search\ConditionInterface;
-use Ddeboer\Imap\Search\LogicalOperator\All;
-
 /**
- * An IMAP mailbox (commonly referred to as a 'folder').
+ * An IMAP mailbox (commonly referred to as a ‘folder’)
+ *
  */
-final class Mailbox implements MailboxInterface
+class Mailbox implements \Countable, \IteratorAggregate
 {
-    /**
-     * @var ImapResourceInterface
-     */
-    private $resource;
-
-    /**
-     * @var string
-     */
+    private $mailbox;
     private $name;
+    private $connection;
 
     /**
-     * @var \stdClass
-     */
-    private $info;
-
-    /**
-     * Constructor.
+     * Constructor
      *
-     * @param ImapResourceInterface $resource IMAP resource
-     * @param string                $name     Mailbox decoded name
-     * @param \stdClass             $info     Mailbox info
+     * @param string     $name       Mailbox name
+     * @param Connection $connection IMAP connection
      */
-    public function __construct(ImapResourceInterface $resource, string $name, \stdClass $info)
+    public function __construct($name, Connection $connection)
     {
-        $this->resource = new ImapResource($resource->getStream(), $this);
-        $this->name     = $name;
-        $this->info     = $info;
+        $this->mailbox = $name;
+        $this->connection = $connection;
+        $this->name = substr($name, strpos($name, '}')+1);
     }
 
     /**
-     * Get mailbox decoded name.
+     * Get mailbox name
+     *
+     * @return string
      */
-    public function getName(): string
+    public function getName()
     {
         return $this->name;
     }
 
     /**
-     * Get mailbox encoded path.
-     */
-    public function getEncodedName(): string
-    {
-        /** @var string $name */
-        $name = $this->info->name;
-
-        return (string) \preg_replace('/^{.+}/', '', $name);
-    }
-
-    /**
-     * Get mailbox encoded full name.
-     */
-    public function getFullEncodedName(): string
-    {
-        return $this->info->name;
-    }
-
-    /**
-     * Get mailbox attributes.
-     */
-    public function getAttributes(): int
-    {
-        return $this->info->attributes;
-    }
-
-    /**
-     * Get mailbox delimiter.
-     */
-    public function getDelimiter(): string
-    {
-        return $this->info->delimiter;
-    }
-
-    /**
-     * Get number of messages in this mailbox.
+     * Get number of messages in this mailbox
      *
      * @return int
      */
     public function count()
     {
-        $return = \imap_num_msg($this->resource->getStream());
+        $this->init();
 
-        if (false === $return) {
-            throw new ImapNumMsgException('imap_num_msg failed');
-        }
-
-        return $return;
+        return imap_num_msg($this->connection->getResource());
     }
 
     /**
-     * Get Mailbox status.
-     */
-    public function getStatus(int $flags = null): \stdClass
-    {
-        $return = \imap_status($this->resource->getStream(), $this->getFullEncodedName(), $flags ?? \SA_ALL);
-
-        if (false === $return) {
-            throw new ImapStatusException('imap_status failed');
-        }
-
-        return $return;
-    }
-
-    /**
-     * Bulk Set Flag for Messages.
+     * Get message ids
      *
-     * @param string                       $flag    \Seen, \Answered, \Flagged, \Deleted, and \Draft
-     * @param array|MessageIterator|string $numbers Message numbers
-     */
-    public function setFlag(string $flag, $numbers): bool
-    {
-        return \imap_setflag_full($this->resource->getStream(), $this->prepareMessageIds($numbers), $flag, \ST_UID);
-    }
-
-    /**
-     * Bulk Clear Flag for Messages.
+     * @param SearchExpression $search Search expression (optional)
      *
-     * @param string                       $flag    \Seen, \Answered, \Flagged, \Deleted, and \Draft
-     * @param array|MessageIterator|string $numbers Message numbers
+     * @return MessageIterator|Message[]
      */
-    public function clearFlag(string $flag, $numbers): bool
+    public function getMessages(SearchExpression $search = null)
     {
-        return \imap_clearflag_full($this->resource->getStream(), $this->prepareMessageIds($numbers), $flag, \ST_UID);
-    }
+        $this->init();
 
-    /**
-     * Get message ids.
-     *
-     * @param ConditionInterface $search Search expression (optional)
-     */
-    public function getMessages(ConditionInterface $search = null, int $sortCriteria = null, bool $descending = false, string $charset = null): MessageIteratorInterface
-    {
-        if (null === $search) {
-            $search = new All();
-        }
-        $query = $search->toString();
+        $query = ($search ? (string) $search : 'ALL');
 
-        if (\PHP_VERSION_ID < 80000) {
-            $descending = (int) $descending;
-        }
-
-        // We need to clear the stack to know whether imap_last_error()
-        // is related to this imap_search
-        \imap_errors();
-
-        if (null !== $sortCriteria) {
-            $params = [
-                $this->resource->getStream(),
-                $sortCriteria,
-                $descending,
-                \SE_UID,
-                $query,
-            ];
-            if (null !== $charset) {
-                $params[] = $charset;
-            }
-            $messageNumbers = \imap_sort(...$params);
-        } else {
-            $params = [
-                $this->resource->getStream(),
-                $query,
-                \SE_UID,
-            ];
-            if (null !== $charset) {
-                $params[] = $charset;
-            }
-            $messageNumbers = \imap_search(...$params);
-        }
-        if (false !== \imap_last_error()) {
-            // this way all errors occurred during search will be reported
-            throw new InvalidSearchCriteriaException(
-                \sprintf('Invalid search criteria [%s]', $query)
-            );
-        }
-        if (false === $messageNumbers) {
+        $messageNumbers = imap_search($this->connection->getResource(), $query, \SE_UID);
+        if (false == $messageNumbers) {
             // imap_search can also return false
-            $messageNumbers = [];
+            $messageNumbers = array();
         }
 
-        return new MessageIterator($this->resource, $messageNumbers);
+        return new MessageIterator($this->connection->getResource(), $messageNumbers);
     }
 
     /**
-     * Get message iterator for a sequence.
-     *
-     * @param string $sequence Message numbers
-     */
-    public function getMessageSequence(string $sequence): MessageIteratorInterface
-    {
-        \imap_errors();
-
-        $overview = \imap_fetch_overview($this->resource->getStream(), $sequence, \FT_UID);
-        if (false !== \imap_last_error()) {
-            throw new InvalidSearchCriteriaException(
-                \sprintf('Invalid sequence [%s]', $sequence)
-            );
-        }
-        if (\is_array($overview) && [] !== $overview) {
-            $messageNumbers = \array_column($overview, 'uid');
-        } else {
-            $messageNumbers = [];
-        }
-
-        return new MessageIterator($this->resource, $messageNumbers);
-    }
-
-    /**
-     * Get a message by message number.
+     * Get a message by message number
      *
      * @param int $number Message number
+     *
+     * @return Message
      */
-    public function getMessage(int $number): MessageInterface
+    public function getMessage($number)
     {
-        return new Message($this->resource, $number);
+        $this->init();
+
+        return new Message($this->connection->getResource(), $number);
     }
 
     /**
-     * Get messages in this mailbox.
+     * Get messages in this mailbox
+     *
+     * @return MessageIterator
      */
-    public function getIterator(): MessageIteratorInterface
+    public function getIterator()
     {
+        $this->init();
+
         return $this->getMessages();
     }
 
     /**
-     * Add a message to the mailbox.
+     * Delete this mailbox
+     *
      */
-    public function addMessage(string $message, string $options = null, DateTimeInterface $internalDate = null): bool
+    public function delete()
     {
-        $arguments = [
-            $this->resource->getStream(),
-            $this->getFullEncodedName(),
-            $message,
-        ];
-        if (null !== $options) {
-            $arguments[] = $options;
-            if (null !== $internalDate) {
-                $arguments[] = $internalDate->format('d-M-Y H:i:s O');
-            }
-        }
-
-        return \imap_append(...$arguments);
+        $this->connection->deleteMailbox($this);
     }
 
     /**
-     * Returns a tree of threaded message for the current Mailbox.
+     * Delete all messages marked for deletion
+     *
+     * @return Mailbox
      */
-    public function getThread(): array
+    public function expunge()
     {
-        \set_error_handler(static function (): bool {
-            return true;
-        });
+        $this->init();
 
-        /** @var array|false $tree */
-        $tree = \imap_thread($this->resource->getStream(), \SE_UID);
+        imap_expunge($this->connection->getResource());
 
-        \restore_error_handler();
-
-        return false !== $tree ? $tree : [];
+        return $this;
     }
 
     /**
-     * Bulk move messages.
+     * Add a message to the mailbox
      *
-     * @param array|MessageIterator|string $numbers Message numbers
-     * @param MailboxInterface             $mailbox Destination Mailbox to move the messages to
+     * @param string $message
      *
-     * @throws \Ddeboer\Imap\Exception\MessageMoveException
+     * @return boolean
      */
-    public function move($numbers, MailboxInterface $mailbox): void
+    public function addMessage($message)
     {
-        if (!\imap_mail_move($this->resource->getStream(), $this->prepareMessageIds($numbers), $mailbox->getEncodedName(), \CP_UID)) {
-            throw new MessageMoveException(\sprintf('Messages cannot be moved to "%s"', $mailbox->getName()));
-        }
+        return imap_append($this->connection->getResource(), $this->mailbox, $message);
     }
 
     /**
-     * Bulk copy messages.
-     *
-     * @param array|MessageIterator|string $numbers Message numbers
-     * @param MailboxInterface             $mailbox Destination Mailbox to copy the messages to
-     *
-     * @throws \Ddeboer\Imap\Exception\MessageCopyException
+     * If connection is not currently in this mailbox, switch it to this mailbox
      */
-    public function copy($numbers, MailboxInterface $mailbox): void
+    private function init()
     {
-        if (!\imap_mail_copy($this->resource->getStream(), $this->prepareMessageIds($numbers), $mailbox->getEncodedName(), \CP_UID)) {
-            throw new MessageCopyException(\sprintf('Messages cannot be copied to "%s"', $mailbox->getName()));
+        $check = imap_check($this->connection->getResource());
+        if ($check === false || $check->Mailbox != $this->mailbox) {
+            imap_reopen($this->connection->getResource(), $this->mailbox);
         }
-    }
-
-    /**
-     * Prepare message ids for the use with bulk functions.
-     *
-     * @param array|MessageIterator|string $messageIds Message numbers
-     */
-    private function prepareMessageIds($messageIds): string
-    {
-        if ($messageIds instanceof MessageIterator) {
-            $messageIds = $messageIds->getArrayCopy();
-        }
-
-        if (\is_array($messageIds)) {
-            $messageIds = \implode(',', $messageIds);
-        }
-
-        return $messageIds;
     }
 }

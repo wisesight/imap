@@ -1,20 +1,20 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Ddeboer\Imap\Search\State;
 
-use Ddeboer\Imap\Search\ConditionInterface;
+use Ddeboer\Imap\Search\AbstractCondition;
 
 /**
  * Represents a NEW condition. Only new messages will match this condition.
  */
-final class NewMessage implements ConditionInterface
+class NewMessage extends AbstractCondition
 {
     /**
      * Returns the keyword that the condition represents.
+     *
+     * @return string
      */
-    public function toString(): string
+    public function getKeyword()
     {
         return 'NEW';
     }

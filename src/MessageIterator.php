@@ -1,45 +1,31 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Ddeboer\Imap;
 
-final class MessageIterator extends \ArrayIterator implements MessageIteratorInterface
+class MessageIterator extends \ArrayIterator
 {
-    /**
-     * @var ImapResourceInterface
-     */
-    private $resource;
+    private $stream;
 
     /**
-     * Constructor.
+     * Constructor
      *
-     * @param ImapResourceInterface $resource       IMAP resource
-     * @param array                 $messageNumbers Array of message numbers
+     * @param \resource $stream         IMAP stream
+     * @param array     $messageNumbers Array of message numbers
      */
-    public function __construct(ImapResourceInterface $resource, array $messageNumbers)
+    public function __construct($stream, array $messageNumbers)
     {
-        $this->resource = $resource;
+        $this->stream = $stream;
 
         parent::__construct($messageNumbers);
     }
 
     /**
-     * Get current message.
+     * Get current message
+     *
+     * @return Message
      */
-    public function current(): MessageInterface
+    public function current()
     {
-        $current = parent::current();
-        if (!\is_int($current)) {
-            throw new Exception\OutOfBoundsException(\sprintf(
-                'The current value "%s" isn\'t an integer and doesn\'t represent a message;'
-                . ' try to cycle this "%s" with a native php function like foreach or with the method getArrayCopy(),'
-                . ' or check it by calling the methods valid().',
-                \is_object($current) ? \get_class($current) : \gettype($current),
-                static::class
-            ));
-        }
-
-        return new Message($this->resource, $current);
+        return new Message($this->stream, parent::current());
     }
 }
