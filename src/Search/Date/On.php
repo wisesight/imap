@@ -1,6 +1,6 @@
 <?php
 
-namespace Ddeboer\Imap\Search\Date;
+namespace Wisesight\Imap\Search\Date;
 
 /**
  * Represents a date on condition. Messages must have a date matching the

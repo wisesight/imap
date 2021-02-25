@@ -1,6 +1,6 @@
 <?php
 
-namespace Ddeboer\Imap;
+namespace Wisesight\Imap;
 
 use Ddeboer\Transcoder\Transcoder;
 

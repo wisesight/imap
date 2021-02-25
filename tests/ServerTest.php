@@ -1,13 +1,13 @@
 <?php
 
-namespace Ddeboer\Imap\Tests;
+namespace Wisesight\Imap\Tests;
 
-use Ddeboer\Imap\Server;
+use Wisesight\Imap\Server;
 
 class ServerTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @expectedException \Ddeboer\Imap\Exception\AuthenticationFailedException
+     * @expectedException \Wisesight\Imap\Exception\AuthenticationFailedException
      */
     public function testFailedAuthenticate()
     {

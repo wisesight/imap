@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap\Message;
+namespace Wisesight\Imap\Message;
 
-use Ddeboer\Imap\Parameters;
+use Wisesight\Imap\Parameters;
 use Ddeboer\Transcoder\Transcoder;
 
 /**

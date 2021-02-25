@@ -1,9 +1,9 @@
 <?php
 
-namespace Ddeboer\Imap\Search\Date;
+namespace Wisesight\Imap\Search\Date;
 
 use DateTime;
-use Ddeboer\Imap\Search\AbstractCondition;
+use Wisesight\Imap\Search\AbstractCondition;
 
 /**
  * Represents a date condition.

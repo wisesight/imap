@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap\Search\LogicalOperator;
+namespace Wisesight\Imap\Search\LogicalOperator;
 
-use Ddeboer\Imap\Search\AbstractCondition;
+use Wisesight\Imap\Search\AbstractCondition;
 
 /**
  * Represents an ALL operator. Messages must match all conditions following this

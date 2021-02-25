@@ -1,6 +1,6 @@
 <?php
 
-namespace Ddeboer\Imap\Exception;
+namespace Wisesight\Imap\Exception;
 
 class Exception extends \RuntimeException
 {

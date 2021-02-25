@@ -1,11 +1,11 @@
 <?php
 
-namespace Ddeboer\Imap;
+namespace Wisesight\Imap;
 
-use Ddeboer\Imap\Exception\MessageDoesNotExistException;
-use Ddeboer\Imap\Message\EmailAddress;
-use Ddeboer\Imap\Exception\MessageDeleteException;
-use Ddeboer\Imap\Exception\MessageMoveException;
+use Wisesight\Imap\Exception\MessageDoesNotExistException;
+use Wisesight\Imap\Message\EmailAddress;
+use Wisesight\Imap\Exception\MessageDeleteException;
+use Wisesight\Imap\Exception\MessageMoveException;
 
 /**
  * An IMAP message (e-mail)

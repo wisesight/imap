@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap\Search\Text;
+namespace Wisesight\Imap\Search\Text;
 
-use Ddeboer\Imap\Search\AbstractCondition;
+use Wisesight\Imap\Search\AbstractCondition;
 
 /**
  * Represents a text based condition. Text based conditions use a contains

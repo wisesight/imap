@@ -1,6 +1,6 @@
 <?php
 
-namespace Ddeboer\Imap\Message;
+namespace Wisesight\Imap\Message;
 
 /**
  * An e-mail address

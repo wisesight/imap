@@ -1,6 +1,6 @@
 {
-    "name": "ddeboer/imap",
-    "description": "Object-oriented IMAP for PHP",
+    "name": "wisesight/imap",
+    "description": "Object-oriented IMAP for PHP - Modified by Wisesight",
     "keywords": [ "email", "mail", "imap" ],
     "license": "MIT",
     "authors": [

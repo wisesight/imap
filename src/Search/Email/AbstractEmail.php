@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap\Search\Email;
+namespace Wisesight\Imap\Search\Email;
 
-use Ddeboer\Imap\Search\AbstractCondition;
+use Wisesight\Imap\Search\AbstractCondition;
 
 /**
  * Represents an email condition.
