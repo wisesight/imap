@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap\Search\Flag;
+namespace Wisesight\Imap\Search\Flag;
 
-use Ddeboer\Imap\Search\AbstractCondition;
+use Wisesight\Imap\Search\AbstractCondition;
 
 /**
  * Represents a UNFLAGGED flag condition. Messages must no have the \\FLAGGED

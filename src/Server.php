@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap;
+namespace Wisesight\Imap;
 
-use Ddeboer\Imap\Exception\AuthenticationFailedException;
+use Wisesight\Imap\Exception\AuthenticationFailedException;
 
 /**
  * An IMAP server

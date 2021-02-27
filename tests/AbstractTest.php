@@ -1,10 +1,10 @@
 <?php
-namespace Ddeboer\Imap\Tests;
+namespace Wisesight\Imap\Tests;
 
-use Ddeboer\Imap\Exception\MailboxDoesNotExistException;
-use Ddeboer\Imap\Mailbox;
-use Ddeboer\Imap\Server;
-use Ddeboer\Imap\Connection;
+use Wisesight\Imap\Exception\MailboxDoesNotExistException;
+use Wisesight\Imap\Mailbox;
+use Wisesight\Imap\Server;
+use Wisesight\Imap\Connection;
 
 abstract class AbstractTest extends \PHPUnit_Framework_TestCase
 {

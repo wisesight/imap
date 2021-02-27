@@ -1,6 +1,6 @@
 <?php
 
-namespace Ddeboer\Imap\Search\Text;
+namespace Wisesight\Imap\Search\Text;
 
 /**
  * Represents a body text contains condition. Messages must have a body

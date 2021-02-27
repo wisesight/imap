@@ -3,10 +3,10 @@
 namespace Wisesight\Imap\Search\Date;
 
 /**
- * Represents a date on condition. Messages must have a date matching the
+ * Represents a date after condition. Messages must have a date after the
  * specified date in order to match the condition.
  */
-class On extends AbstractDate
+class After extends AbstractDate
 {
     /**
      * Returns the keyword that the condition represents.
@@ -15,6 +15,6 @@ class On extends AbstractDate
      */
     public function getKeyword()
     {
-        return 'ON';
+        return 'SINCE';
     }
 }

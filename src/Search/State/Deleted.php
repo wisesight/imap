@@ -1,8 +1,8 @@
 <?php
 
-namespace Ddeboer\Imap\Search\State;
+namespace Wisesight\Imap\Search\State;
 
-use Ddeboer\Imap\Search\AbstractCondition;
+use Wisesight\Imap\Search\AbstractCondition;
 
 /**
  * Represents a DELETED condition. Messages must have been marked for deletion
