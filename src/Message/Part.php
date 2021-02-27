@@ -106,7 +106,13 @@ class Part implements \RecursiveIterator
 
     public function getCharset()
     {
-        return $this->parameters->get('charset');
+        $charset =  $this->parameters->get('charset');
+        if($charset == 'windows-874'){
+            return 'tis-620';
+        }
+        else{
+            return $charset;
+        }
     }
 
     public function getType()
